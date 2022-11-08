@@ -3,6 +3,7 @@
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 import os
 from PyQt5.QtCore import QUrl
+from winsound import Beep
 
 
 class AudioInterface:
@@ -31,6 +32,8 @@ class AudioInterface:
 
     def play_audio(self): #playing audio from player
         self.player.play()
+        # Beep(1000,100)
+
 
     def stop_audio(self):
         self.player.stop()

@@ -1,7 +1,6 @@
 from PyQt5 import uic
 from PyQt5.QtWidgets import QApplication
 from random import choice
-# from Observer_Chords import *
 from AudioInterface import *
 from Count_MeasureObj import *
 from Chord_class import *
@@ -207,7 +206,7 @@ class ProgramConfig:
             self.beats = form.count_edit.setText(str(self.beats))
 
 
-    def play(self):
+    def start_timer(self):
         self.timer = CountTimer(self.tempo, self.beats, self.measures)
 
         #connecting signals to functions
@@ -218,7 +217,7 @@ class ProgramConfig:
         progress_show(1)
         self.timer.run_timer()
 
-    def stop(self):
+    def stop_timer(self):
         self.timer.finished.connect(lambda: change_lcd1(0))
 
         self.timer.stop_timer()
@@ -275,12 +274,12 @@ def start_stop_timer():
 
 def stop():
     form.Play_Button.setStyleSheet("color: rgb(255, 170, 0);""background-color: rgb(144, 0, 2);")
-    Program.config.stop()
+    Program.config.stop_timer()
     form.Play_Button.setText('Play')
 
 
 def play():
-    Program.config.play()
+    Program.config.start_timer()
     print_rand_chord()
     form.Play_Button.setStyleSheet("background-color: rgb(16, 199, 37);")
     form.Play_Button.setText("Stop")
