@@ -134,12 +134,13 @@ class ProgramConfig:
         self.chords_list = ChordsList() #obj_lst with chords names
         self.chords_list.add_observer(ObserverButtonsColor(_CHORD_BUTTONS))
 
-        self.audio = AudioInterface()
+        self.audio = AudioInterface(1000)
 
         self.timer = CountTimer(self.tempo, self.beats, self.measures)
 
-        self.active_chords_update() #
+        self.active_chords_update()
 
+#proerty
     # @property
     # def tempo(self):
     #     return self.__tempo
@@ -170,7 +171,7 @@ class ProgramConfig:
 
     @staticmethod
     def _validator(value, MIN, MAX):
-        return value.isdigit() and MIN <= int(value) <= MAX
+        return value.isdigit() and MIN <= int(value) <= MAX and value != 0
 
 
     def temp_chords_update(self):
@@ -212,16 +213,43 @@ class ProgramConfig:
         #connecting signals to functions
         self.timer.beat_finished.connect(change_lcd1)
         self.timer.loop_finished.connect(print_rand_chord)
-        self.timer.beat_finished.connect(self.audio.play_audio)
+        # self.timer.beat_finished.connect(self.audio.play_audio)
+
         self.timer.measure_finished.connect(progress_show)
         progress_show(1)
         self.timer.run_timer()
+
+        self.start_audio(int((60 / self.tempo)*1000))
+
+
+    def start_audio(self, ms):
+        # creating new thread
+        self.thread = QtCore.QThread()
+        print('Thread created')
+        #creating worker
+        self.audio = AudioInterface(ms)
+        self.audio.load_audio_click()
+        #move worker to thread
+        self.audio.moveToThread(self.thread)
+        print('audio moved to thead')
+        #connecting signals
+        self.thread.started.connect(self.audio.play_audio)
+        print('first connection done')
+        # self.thread.started.connect(lambda: print('lambda'))
+        # print('second connection done')
+        # self.thread.finished.connect(self.audio.stop_audio)
+
+        self.thread.start()
+        print('thread started')
+
 
     def stop_timer(self):
         self.timer.finished.connect(lambda: change_lcd1(0))
 
         self.timer.stop_timer()
         self.audio.stop_audio()
+        self.thread.quit()
+        # self.thread.deleteLater()
 
 
 ##############################################
@@ -229,7 +257,6 @@ def read_input_numbers(n_of_LineEdit):
     widget_data = {0: (tempo_Edit, Program.config.tempo),
                    1: (measures_Edit, Program.config.measures),
                    2: (beats_Edit, Program.config.beats)}
-    # print(widget_data[n_of_LineEdit])
     Program.config.change_tempo_measure()
 
     tempo_Edit.setStyleSheet('''color: black; background-color: rgb(244, 244, 244); ''')
@@ -403,7 +430,7 @@ form2.Apply_button.clicked.connect(lambda: Program.load_active_chords())
 form2.Apply_button.clicked.connect(lambda: reload_next_chord())
 form2.Apply_button.clicked.connect(window2.close)
 
-# form.Show_chords_list.clicked.connect(lambda: pass)
+form.Show_chords_list.clicked.connect(lambda: print(Program.config.thread.isRunning()))
 
 
 

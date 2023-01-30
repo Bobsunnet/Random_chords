@@ -2,15 +2,20 @@
 
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 import os
-from PyQt5.QtCore import QUrl
+from PyQt5 import QtCore
 from winsound import Beep
 
 
-class AudioInterface:
-    def __init__(self):
+class AudioInterface(QtCore.QObject):
+    running = False
+
+    def __init__(self, ms):
+        super().__init__()
         self.audios = self._scan_audio() #[x for x in self._scan_audio()]
         self.player = QMediaPlayer()
         self.audio_name = self.audios[0]
+        self.ms = ms
+
 
     def change_click(self, index):  # change self.audio_click value
         name = self.audios[index]
@@ -26,15 +31,21 @@ class AudioInterface:
         if name is None:
             name = self.audios[0]
         file_path = os.path.join(os.getcwd(), 'sounds1', name)  # getting a full_path for click file
-        url = QUrl.fromLocalFile(file_path)  # QUrl class for reading the filepath
+        url = QtCore.QUrl.fromLocalFile(file_path)  # QUrl class for reading the filepath
         audio_click = QMediaContent(url)  # converting url to mediacontent
         self.player.setMedia(audio_click)  # upload the content media to player
 
     def play_audio(self): #playing audio from player
-        self.player.play()
-        # Beep(1000,100)
+        print('play_audio exec')
+        self.running = True
+        while self.running:
+            self.player.play()
+            # Beep(1000,100)
+            QtCore.QThread.msleep(self.ms)
+
 
 
     def stop_audio(self):
-        self.player.stop()
+        self.running = False
+        print('stop_audio exec \n')
 
